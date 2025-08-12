@@ -13,7 +13,7 @@ export default function Home() {
   const { isAuthenticated, isLoading, isInitialized } = useApp();
   const [authView, setAuthView] = useState<AuthView>('login');
 
-  if (!isInitialized) {
+  if (!isInitialized || isLoading) {
     return <LoadingOverlay />;
   }
 
@@ -26,7 +26,6 @@ export default function Home() {
 
   return (
     <>
-      {isLoading && <LoadingOverlay />}
       {isAuthenticated ? <CarWashApp /> : renderAuth()}
     </>
   );

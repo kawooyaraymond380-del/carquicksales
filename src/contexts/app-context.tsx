@@ -47,7 +47,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [staff] = useState<Staff[]>(STAFF_MEMBERS);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const { toast } = useToast();
 
@@ -183,16 +183,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
-      if (user) {
-        await loadServicesForDate(new Date());
-      } else {
-        setServices([]); // Clear services on logout
-      }
       setIsInitialized(true);
+      setIsLoading(false);
     });
     setLanguage('ar');
     return () => unsubscribe();
-  }, [loadServicesForDate, setLanguage]);
+  }, [setLanguage]);
+
+  useEffect(() => {
+    if (isInitialized && user) {
+        loadServicesForDate(new Date());
+    }
+  }, [isInitialized, user, loadServicesForDate]);
+
 
   const value = {
     language,
