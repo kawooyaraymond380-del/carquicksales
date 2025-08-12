@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
+import { Label } from '@/components/ui/label';
 import { Calendar as CalendarIcon, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { arSA } from 'date-fns/locale';
