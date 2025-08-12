@@ -7,36 +7,41 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-interface LoginFormProps {
+interface SignUpFormProps {
   onSwitchView: () => void;
 }
 
-export function LoginForm({ onSwitchView }: LoginFormProps) {
-  const { login, t } = useApp();
-  const [username, setUsername] = useState('');
+export function SignUpForm({ onSwitchView }: SignUpFormProps) {
+  const { signUp, t } = useApp();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    login(username, password);
+    if (password !== confirmPassword) {
+      alert(t('passwords-do-not-match'));
+      return;
+    }
+    signUp(email, password);
   };
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">{t('login-title')}</CardTitle>
-          <CardDescription>{t('login-subtitle')}</CardDescription>
+          <CardTitle className="text-2xl font-bold">{t('signup-title')}</CardTitle>
+          <CardDescription>{t('signup-subtitle')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">{t('username-label')}</Label>
+              <Label htmlFor="email">{t('email-label')}</Label>
               <Input
-                id="username"
+                id="email"
                 type="email"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="email@example.com"
               />
@@ -51,15 +56,25 @@ export function LoginForm({ onSwitchView }: LoginFormProps) {
                 required
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">{t('confirm-password-label')}</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
             <Button type="submit" className="w-full">
-              {t('login-button-text')}
+              {t('signup-button-text')}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex justify-center text-sm">
-          <p>{t('no-account-text')}</p>
+          <p>{t('have-account-text')}</p>
           <Button variant="link" onClick={onSwitchView} className="p-1">
-            {t('create-account-text')}
+            {t('login-now-text')}
           </Button>
         </CardFooter>
       </Card>

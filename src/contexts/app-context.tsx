@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
 import {
   onAuthStateChanged,
+  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   type User,
@@ -29,6 +30,7 @@ export interface AppContextType {
   t: (key: keyof typeof translations.en) => string;
   isAuthenticated: boolean;
   login: (user: string, pass: string) => void;
+  signUp: (user: string, pass: string) => void;
   logout: () => void;
   services: Service[];
   staff: Staff[];
@@ -78,6 +80,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
       console.error(error);
       toast({
         title: t('login-failed'),
+        variant: 'destructive',
+      });
+    } finally {
+      hideLoading();
+    }
+  };
+
+  const signUp = async (email: string, password: string) => {
+    showLoading();
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      toast({
+        title: t('signup-success-title'),
+        description: t('signup-success-description'),
+        variant: 'default',
+      });
+    } catch (error) {
+      console.error(error);
+      const firebaseError = error as { code?: string };
+      let message = t('signup-failed');
+      if (firebaseError.code === 'auth/email-already-in-use') {
+        message = t('signup-failed-email-in-use');
+      } else if (firebaseError.code === 'auth/weak-password') {
+        message = t('signup-failed-weak-password');
+      }
+      toast({
+        title: message,
         variant: 'destructive',
       });
     } finally {
@@ -170,6 +199,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     t,
     isAuthenticated,
     login,
+    signUp,
     logout,
     services,
     staff,
