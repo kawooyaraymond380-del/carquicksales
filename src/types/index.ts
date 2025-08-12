@@ -1,7 +1,8 @@
 export type Staff = {
-  id: number;
+  id: string; // Changed from number to string for Firestore
   name: string;
   nameEn: string;
+  userId: string;
 };
 
 export type Service = {
@@ -10,7 +11,7 @@ export type Service = {
   serviceType: string;
   carSize: string | null;
   hasCoupon: boolean;
-  staffId: number;
+  staffId: string; // Changed from number to string for Firestore ID
   staffName: string;
   staffNameEn: string;
   price: number;

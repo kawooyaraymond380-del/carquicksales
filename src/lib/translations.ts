@@ -72,7 +72,20 @@ export const translations = {
     "signup-success-description": "تم تسجيل دخولك تلقائيًا.",
     "signup-failed": "فشل إنشاء الحساب. حاول مرة أخرى.",
     "signup-failed-email-in-use": "هذا البريد الإلكتروني مستخدم بالفعل.",
-    "signup-failed-weak-password": "كلمة المرور ضعيفة جدًا. يجب أن تتكون من 6 أحرف على الأقل."
+    "signup-failed-weak-password": "كلمة المرور ضعيفة جدًا. يجب أن تتكون من 6 أحرف على الأقل.",
+    "staff-management-title": "إدارة الموظفين",
+    "staff-list-label": "قائمة الموظفين",
+    "no-staff-text": "لم يتم إضافة أي موظفين بعد.",
+    "add-staff-member-title": "إضافة موظف جديد",
+    "staff-name-ar-label": "الاسم (بالعربية)",
+    "name-in-arabic-placeholder": "أحمد محمد",
+    "staff-name-en-label": "الاسم (بالإنجليزية)",
+    "name-in-english-placeholder": "Ahmed Mohamed",
+    "add-staff-btn": "إضافة موظف",
+    "staff-added-success": "تمت إضافة الموظف بنجاح.",
+    "staff-added-failed": "فشل في إضافة الموظف.",
+    "staff-removed-success": "تمت إزالة الموظف بنجاح.",
+    "staff-removed-failed": "فشل في إزالة الموظف."
   },
   en: {
     "app-title": "Car Wash Service",
@@ -147,7 +160,20 @@ export const translations = {
     "signup-success-description": "You have been logged in automatically.",
     "signup-failed": "Failed to create account. Please try again.",
     "signup-failed-email-in-use": "This email is already in use.",
-    "signup-failed-weak-password": "Password is too weak. It should be at least 6 characters."
+    "signup-failed-weak-password": "Password is too weak. It should be at least 6 characters.",
+    "staff-management-title": "Staff Management",
+    "staff-list-label": "Staff List",
+    "no-staff-text": "No staff members added yet.",
+    "add-staff-member-title": "Add New Staff Member",
+    "staff-name-ar-label": "Name (Arabic)",
+    "name-in-arabic-placeholder": "Ahmed Mohamed",
+    "staff-name-en-label": "Name (English)",
+    "name-in-english-placeholder": "Ahmed Mohamed",
+    "add-staff-btn": "Add Staff Member",
+    "staff-added-success": "Staff member added successfully.",
+    "staff-added-failed": "Failed to add staff member.",
+    "staff-removed-success": "Staff member removed successfully.",
+    "staff-removed-failed": "Failed to remove staff member."
   },
 };
 

@@ -74,7 +74,7 @@ export function NewServiceForm() {
       return;
     }
 
-    const selectedStaff = staff.find(s => s.id === parseInt(staffId));
+    const selectedStaff = staff.find(s => s.id === staffId);
     if (!selectedStaff) return;
     
     addService({
@@ -137,7 +137,7 @@ export function NewServiceForm() {
                 </SelectTrigger>
                 <SelectContent>
                   {staff.map((s) => (
-                    <SelectItem key={s.id} value={String(s.id)}>
+                    <SelectItem key={s.id} value={s.id}>
                       {language === 'ar' ? s.name : s.nameEn}
                     </SelectItem>
                   ))}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useApp } from '@/hooks/use-app';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,9 +11,10 @@ import {
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, PlusCircle, Trash2 } from 'lucide-react';
 import type { Language } from '@/lib/translations';
 
 interface SettingsDialogProps {
@@ -21,11 +23,21 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ isOpen, onOpenChange }: SettingsDialogProps) {
-  const { t, language, setLanguage, logout, user } = useApp();
+  const { t, language, setLanguage, logout, user, staff, addStaff, removeStaff } = useApp();
+  const [newStaffName, setNewStaffName] = useState('');
+  const [newStaffNameEn, setNewStaffNameEn] = useState('');
+
+  const handleAddStaff = () => {
+    if (newStaffName.trim() && newStaffNameEn.trim()) {
+      addStaff(newStaffName, newStaffNameEn);
+      setNewStaffName('');
+      setNewStaffNameEn('');
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>{t('settings-title')}</DialogTitle>
           {user?.email && (
@@ -35,7 +47,7 @@ export function SettingsDialog({ isOpen, onOpenChange }: SettingsDialogProps) {
             </DialogDescription>
           )}
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-6 py-4">
           <div className="space-y-2">
             <Label htmlFor="language-select">{t('settings-language-label')}</Label>
             <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
@@ -47,6 +59,55 @@ export function SettingsDialog({ isOpen, onOpenChange }: SettingsDialogProps) {
                 <SelectItem value="en">{t('settings-english')}</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">{t('staff-management-title')}</h3>
+            <div className="space-y-2">
+              <Label>{t('staff-list-label')}</Label>
+              <div className="space-y-2 max-h-40 overflow-y-auto rounded-md border p-2">
+                {staff.length > 0 ? (
+                  staff.map(s => (
+                    <div key={s.id} className="flex items-center justify-between gap-2 p-1 rounded-md hover:bg-muted">
+                      <span>{language === 'ar' ? s.name : s.nameEn}</span>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeStaff(s.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground p-2">{t('no-staff-text')}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-3 rounded-md border p-4">
+              <h4 className="font-medium">{t('add-staff-member-title')}</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-staff-name-ar">{t('staff-name-ar-label')}</Label>
+                  <Input 
+                    id="new-staff-name-ar"
+                    value={newStaffName}
+                    onChange={(e) => setNewStaffName(e.target.value)}
+                    placeholder={t('name-in-arabic-placeholder')}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-staff-name-en">{t('staff-name-en-label')}</Label>
+                  <Input 
+                    id="new-staff-name-en"
+                    value={newStaffNameEn}
+                    onChange={(e) => setNewStaffNameEn(e.target.value)}
+                    placeholder={t('name-in-english-placeholder')}
+                  />
+                </div>
+              </div>
+              <Button onClick={handleAddStaff} className="w-full">
+                <PlusCircle />
+                {t('add-staff-btn')}
+              </Button>
+            </div>
           </div>
         </div>
         <DialogFooter>

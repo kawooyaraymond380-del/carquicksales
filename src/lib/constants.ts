@@ -1,11 +1,4 @@
-import type { Staff, ServiceTypesConfig } from '@/types';
-
-export const STAFF_MEMBERS: Staff[] = [
-  { id: 1, name: 'أحمد محمد', nameEn: 'Ahmed Mohamed' },
-  { id: 2, name: 'محمد علي', nameEn: 'Mohamed Ali' },
-  { id: 3, name: 'خالد إبراهيم', nameEn: 'Khalid Ibrahim' },
-  { id: 4, name: 'عبدالله أحمد', nameEn: 'Abdullah Ahmed' },
-];
+import type { ServiceTypesConfig } from '@/types';
 
 export const SERVICE_TYPES: ServiceTypesConfig = {
   'whole-wash': {

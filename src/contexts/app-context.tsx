@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react';
 import { createContext, useState, useEffect, useCallback } from 'react';
 import { translations, type Language } from '@/lib/translations';
-import { STAFF_MEMBERS } from '@/lib/constants';
 import type { Service, Staff } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
@@ -21,6 +20,9 @@ import {
   query,
   where,
   Timestamp,
+  deleteDoc,
+  doc,
+  orderBy,
 } from 'firebase/firestore';
 import { format, startOfDay, endOfDay } from 'date-fns';
 
@@ -35,6 +37,8 @@ export interface AppContextType {
   logout: () => void;
   services: Service[];
   staff: Staff[];
+  addStaff: (name: string, nameEn: string) => void;
+  removeStaff: (id: string) => void;
   addService: (service: Omit<Service, 'id' | 'timestamp'>) => void;
   loadServicesForDate: (date: Date) => void;
   isLoading: boolean;
@@ -47,7 +51,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>('ar');
   const [user, setUser] = useState<User | null>(null);
   const [services, setServices] = useState<Service[]>([]);
-  const [staff] = useState<Staff[]>(STAFF_MEMBERS);
+  const [staff, setStaff] = useState<Staff[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const { toast } = useToast();
@@ -73,14 +77,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      toast({
-        title: t('login-success'),
-        variant: 'default',
-      });
     } catch (error) {
       console.error(error);
+      const firebaseError = error as { code?: string };
+      let message = t('login-failed');
+      if (firebaseError.code === 'auth/invalid-credential') {
+        message = t('login-failed');
+      }
       toast({
-        title: t('login-failed'),
+        title: message,
         variant: 'destructive',
       });
     } finally {
@@ -119,8 +124,61 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       await signOut(auth);
+      setStaff([]);
+      setServices([]);
     } catch (error) {
       console.error(error);
+    } finally {
+      hideLoading();
+    }
+  };
+
+  const loadStaff = useCallback(async () => {
+    if (!user) return;
+    try {
+      const staffCol = collection(db, 'staff');
+      const q = query(staffCol, where('userId', '==', user.uid), orderBy('name'));
+      const querySnapshot = await getDocs(q);
+      const staffData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...(doc.data() as Omit<Staff, 'id'>),
+      }));
+      setStaff(staffData);
+    } catch (error) {
+      console.error('Error loading staff:', error);
+      setStaff([]);
+    }
+  }, [user]);
+
+  const addStaff = async (name: string, nameEn: string) => {
+    if (!user) return;
+    showLoading();
+    try {
+      await addDoc(collection(db, 'staff'), {
+        name,
+        nameEn,
+        userId: user.uid,
+      });
+      await loadStaff();
+      toast({ title: t('staff-added-success') });
+    } catch (error) {
+      console.error('Error adding staff:', error);
+      toast({ title: t('staff-added-failed'), variant: 'destructive' });
+    } finally {
+      hideLoading();
+    }
+  };
+
+  const removeStaff = async (id: string) => {
+    if (!user) return;
+    showLoading();
+    try {
+      await deleteDoc(doc(db, 'staff', id));
+      await loadStaff();
+      toast({ title: t('staff-removed-success') });
+    } catch (error) {
+      console.error('Error removing staff:', error);
+      toast({ title: t('staff-removed-failed'), variant: 'destructive' });
     } finally {
       hideLoading();
     }
@@ -169,8 +227,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       await addDoc(collection(db, 'services'), newService);
       
-      // Reload services for the current day to show the new entry
-      await loadServicesForDate(new Date());
+      await loadServicesForDate(now);
 
       toast({ title: t('service-saved') });
     } catch (error) {
@@ -184,19 +241,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
+      if (user) {
+        setIsLoading(true);
+        await Promise.all([loadServicesForDate(new Date()), loadStaff()]);
+        setIsLoading(false);
+      } else {
+        setStaff([]);
+        setServices([]);
+      }
       setIsInitialized(true);
-      hideLoading();
     });
     setLanguage('ar');
     return () => unsubscribe();
-  }, [setLanguage]);
-
-  useEffect(() => {
-    if (isInitialized && user) {
-        loadServicesForDate(new Date());
-    }
-  }, [isInitialized, user, loadServicesForDate]);
-
+  }, [setLanguage, loadServicesForDate, loadStaff]);
 
   const value = {
     language,
@@ -209,9 +266,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     logout,
     services,
     staff,
+    addStaff,
+    removeStaff,
     addService,
     loadServicesForDate,
-    isLoading,
+    isLoading: !isInitialized || isLoading,
     isInitialized,
   };
 
