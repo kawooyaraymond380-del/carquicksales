@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LanguageSwitcher } from '@/components/language-switcher';
 
 interface LoginFormProps {
   onSwitchView: () => void;
@@ -25,6 +26,9 @@ export function LoginForm({ onSwitchView }: LoginFormProps) {
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
+          <div className="absolute top-4 right-4 rtl:left-4 rtl:right-auto">
+            <LanguageSwitcher />
+          </div>
           <CardTitle className="text-2xl font-bold">{t('login-title')}</CardTitle>
           <CardDescription>{t('login-subtitle')}</CardDescription>
         </CardHeader>
