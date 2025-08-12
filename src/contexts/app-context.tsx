@@ -192,7 +192,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
     setLanguage('ar');
     return () => unsubscribe();
-  }, [loadServicesForDate]);
+  }, [loadServicesForDate, setLanguage]);
 
   const value = {
     language,
