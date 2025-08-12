@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AIServiceSuggester } from '@/components/ai-service-suggester';
 
 export function NewServiceForm() {
   const { t, language, staff, addService } = useApp();
@@ -31,15 +30,6 @@ export function NewServiceForm() {
     setPrice('');
     setCommission('');
   }, []);
-
-  const handleAISuggestion = (suggestion: string) => {
-    const suggestedServiceKey = Object.keys(SERVICE_TYPES).find(key => 
-      t(key as keyof typeof import('@/lib/translations').translations.en).toLowerCase() === suggestion.toLowerCase()
-    );
-    if (suggestedServiceKey) {
-      setServiceType(suggestedServiceKey);
-    }
-  };
 
   useEffect(() => {
     if (!serviceConfig) {
@@ -107,8 +97,6 @@ export function NewServiceForm() {
         <CardTitle>{t('new-service-title')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-8">
-        <AIServiceSuggester onSuggestionClick={handleAISuggestion} />
-
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
