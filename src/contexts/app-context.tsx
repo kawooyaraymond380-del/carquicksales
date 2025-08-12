@@ -134,6 +134,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const servicesCol = collection(db, 'services');
       const q = query(
         servicesCol,
+        where('userId', '==', user.uid),
         where('timestamp', '>=', start),
         where('timestamp', '<=', end)
       );
@@ -146,7 +147,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           timestamp: (data.timestamp as Timestamp).toDate().toISOString(),
         } as Service;
       });
-      setServices(servicesData.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()));
+      setServices(servicesData.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
     } catch (error) {
       console.error('Error loading services:', error);
       setServices([]);
@@ -165,17 +166,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         timestamp: Timestamp.fromDate(now),
         userId: user.uid,
       };
-      const docRef = await addDoc(collection(db, 'services'), newService);
+      await addDoc(collection(db, 'services'), newService);
       
-      setServices(prev => [...prev, {
-        ...serviceData,
-        id: docRef.id,
-        timestamp: now.toISOString()
-      }]);
+      // Reload services for the current day to show the new entry
+      await loadServicesForDate(new Date());
 
       toast({ title: t('service-saved') });
     } catch (error) {
       console.error('Error adding service: ', error);
+      toast({ title: 'Failed to save service', variant: 'destructive' });
     } finally {
       hideLoading();
     }
@@ -186,6 +185,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setUser(user);
       if (user) {
         await loadServicesForDate(new Date());
+      } else {
+        setServices([]); // Clear services on logout
       }
       setIsInitialized(true);
     });
