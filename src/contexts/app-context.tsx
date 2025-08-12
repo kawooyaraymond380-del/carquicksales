@@ -29,6 +29,7 @@ export interface AppContextType {
   setLanguage: (lang: Language) => void;
   t: (key: keyof typeof translations.en) => string;
   isAuthenticated: boolean;
+  user: User | null;
   login: (user: string, pass: string) => void;
   signUp: (user: string, pass: string) => void;
   logout: () => void;
@@ -184,7 +185,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       setIsInitialized(true);
-      setIsLoading(false);
+      hideLoading();
     });
     setLanguage('ar');
     return () => unsubscribe();
@@ -202,6 +203,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setLanguage,
     t,
     isAuthenticated,
+    user,
     login,
     signUp,
     logout,

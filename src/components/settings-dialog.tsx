@@ -2,10 +2,17 @@
 
 import { useApp } from '@/hooks/use-app';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LogOut } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 import type { Language } from '@/lib/translations';
 
 interface SettingsDialogProps {
@@ -14,13 +21,19 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ isOpen, onOpenChange }: SettingsDialogProps) {
-  const { t, language, setLanguage, logout } = useApp();
+  const { t, language, setLanguage, logout, user } = useApp();
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('settings-title')}</DialogTitle>
+          {user?.email && (
+            <DialogDescription className="flex items-center gap-2 pt-2">
+              <User className="h-4 w-4" />
+              <span>{user.email}</span>
+            </DialogDescription>
+          )}
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
