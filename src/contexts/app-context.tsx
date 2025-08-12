@@ -6,6 +6,22 @@ import { translations, type Language } from '@/lib/translations';
 import { STAFF_MEMBERS } from '@/lib/constants';
 import type { Service, Staff } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { auth, db } from '@/lib/firebase';
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  type User,
+} from 'firebase/auth';
+import {
+  addDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+  Timestamp,
+} from 'firebase/firestore';
+import { format, startOfDay, endOfDay } from 'date-fns';
 
 export interface AppContextType {
   language: Language;
@@ -26,12 +42,14 @@ export const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>('ar');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [staff] = useState<Staff[]>(STAFF_MEMBERS);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const { toast } = useToast();
+
+  const isAuthenticated = !!user;
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
@@ -48,77 +66,102 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const showLoading = () => setIsLoading(true);
   const hideLoading = () => setIsLoading(false);
 
-  const login = (username: string, password: string) => {
+  const login = async (email: string, password: string) => {
     showLoading();
-    setTimeout(() => {
-      if (username && password) {
-        localStorage.setItem('jwt', 'example-jwt-token');
-        setIsAuthenticated(true);
-        toast({
-          title: t('login-success'),
-          variant: 'default',
-        });
-        loadServicesForDate(new Date());
-      } else {
-        toast({
-          title: t('login-failed'),
-          variant: 'destructive',
-        });
-      }
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      toast({
+        title: t('login-success'),
+        variant: 'default',
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: t('login-failed'),
+        variant: 'destructive',
+      });
+    } finally {
       hideLoading();
-    }, 500);
+    }
   };
 
-  const logout = () => {
+  const logout = async () => {
     showLoading();
-    setTimeout(() => {
-      localStorage.removeItem('jwt');
-      setIsAuthenticated(false);
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error(error);
+    } finally {
       hideLoading();
-    }, 500);
+    }
   };
 
-  const toDateString = (date: Date) => date.toISOString().split('T')[0];
-
-  const loadServicesForDate = useCallback((date: Date) => {
+  const loadServicesForDate = useCallback(async (date: Date) => {
+    if (!user) return;
     showLoading();
-    setTimeout(() => {
-      const dateKey = `services_${toDateString(date)}`;
-      const data = localStorage.getItem(dateKey);
-      setServices(data ? JSON.parse(data) : []);
+    try {
+      const start = startOfDay(date);
+      const end = endOfDay(date);
+      const servicesCol = collection(db, 'services');
+      const q = query(
+        servicesCol,
+        where('timestamp', '>=', start),
+        where('timestamp', '<=', end)
+      );
+      const querySnapshot = await getDocs(q);
+      const servicesData = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          timestamp: (data.timestamp as Timestamp).toDate().toISOString(),
+        } as Service;
+      });
+      setServices(servicesData.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()));
+    } catch (error) {
+      console.error('Error loading services:', error);
+      setServices([]);
+    } finally {
       hideLoading();
-    }, 300);
-  }, []);
+    }
+  }, [user]);
 
-  const addService = (serviceData: Omit<Service, 'id' | 'timestamp'>) => {
+  const addService = async (serviceData: Omit<Service, 'id' | 'timestamp'>) => {
+    if (!user) return;
     showLoading();
-    setTimeout(() => {
+    try {
       const now = new Date();
-      const newService: Service = {
+      const newService = {
         ...serviceData,
-        id: now.getTime(),
-        timestamp: now.toISOString(),
+        timestamp: Timestamp.fromDate(now),
+        userId: user.uid,
       };
+      const docRef = await addDoc(collection(db, 'services'), newService);
       
-      const dateKey = `services_${toDateString(now)}`;
-      const existingServices = JSON.parse(localStorage.getItem(dateKey) || '[]') as Service[];
-      const updatedServices = [...existingServices, newService];
-      localStorage.setItem(dateKey, JSON.stringify(updatedServices));
-      
-      setServices(updatedServices);
+      setServices(prev => [...prev, {
+        ...serviceData,
+        id: docRef.id,
+        timestamp: now.toISOString()
+      }]);
+
       toast({ title: t('service-saved') });
+    } catch (error) {
+      console.error('Error adding service: ', error);
+    } finally {
       hideLoading();
-    }, 300);
+    }
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('jwt');
-    if (token) {
-      setIsAuthenticated(true);
-      loadServicesForDate(new Date());
-    }
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setUser(user);
+      if (user) {
+        await loadServicesForDate(new Date());
+      }
+      setIsInitialized(true);
+    });
     setLanguage('ar');
-    setIsInitialized(true);
+    return () => unsubscribe();
   }, [loadServicesForDate]);
 
   const value = {

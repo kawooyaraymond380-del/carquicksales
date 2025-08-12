@@ -5,7 +5,7 @@ export type Staff = {
 };
 
 export type Service = {
-  id: number;
+  id: string; // Changed from number to string for Firestore
   timestamp: string;
   serviceType: string;
   carSize: string | null;
@@ -32,5 +32,5 @@ export type ServiceConfig = {
 };
 
 export type ServiceTypesConfig = {
-  [key: string]: ServiceConfig;
+  [key:string]: ServiceConfig;
 };
