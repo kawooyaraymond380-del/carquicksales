@@ -195,7 +195,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         servicesCol,
         where('userId', '==', user.uid),
         where('timestamp', '>=', start),
-        where('timestamp', '<=', end)
+        where('timestamp', '<=', end),
+        orderBy('timestamp', 'desc')
       );
       const querySnapshot = await getDocs(q);
       const servicesData = querySnapshot.docs.map(doc => {
@@ -206,7 +207,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           timestamp: (data.timestamp as Timestamp).toDate().toISOString(),
         } as Service;
       });
-      setServices(servicesData.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+      setServices(servicesData);
     } catch (error) {
       console.error('Error loading services:', error);
       setServices([]);
